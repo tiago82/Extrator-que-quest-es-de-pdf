@@ -1,0 +1,13 @@
+{
+  "nome": "Uma coluna, números como 1. ou 1)",
+  "numero_regex": "(?P<numero>\\d{1,3})[.)]",
+  "exigir_negrito": false,
+  "primeira_questao": 1,
+  "ignorar_paginas_iniciais": 0,
+  "colunas": "1",
+  "inicios_colunas": null,
+  "limite_superior": 0.07,
+  "limite_inferior": 0.93,
+  "margem_pontos": 3,
+  "quantidade_esperada": null
+}

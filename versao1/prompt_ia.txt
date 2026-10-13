@@ -1,0 +1,46 @@
+Analise o PDF que anexei diretamente a esta conversa. A tarefa é localizar os limites visuais das questões para um programa local recortar o documento original. Não resolva nem transcreva as questões.
+
+Use a representação visual das páginas, incluindo colunas, figuras, tabelas e alternativas. O texto extraído pode ajudar a identificar a questão, mas não deve ser usado sozinho para estimar sua posição.
+
+COORDENADAS
+Para cada página inteira, na orientação em que é exibida, use coordenadas normalizadas de 0 a 1000:
+- x0: borda esquerda do corte.
+- y0: borda superior do corte.
+- x1: borda direita do corte.
+- y1: borda inferior do corte.
+Origem no canto superior esquerdo. X cresce para a direita; Y cresce para baixo.
+Normalize cada eixo separadamente: x = 1000 × posição horizontal / largura da página; y = 1000 × posição vertical / altura da página.
+Essa escala não transforma a página em uma imagem quadrada: representa proporções da largura e da altura originais.
+Use inteiros de 0 a 1000, com x0 < x1 e y0 < y1. Não use pixels nem pontos do PDF. Não normalize em relação à coluna ou somente à área de texto.
+
+COMO DELIMITAR
+1. Examine uma página por vez e identifique suas colunas e a ordem de leitura.
+2. Localize o número da questão, seu primeiro elemento e o último elemento que pertence a ela, incluindo todas as alternativas, figuras, legendas e tabelas necessárias.
+3. Faça um retângulo por trecho contínuo da questão na mesma coluna. Use a extensão horizontal real do conteúdo; não aplique uma largura ou altura fixa a todas as questões.
+4. Coloque as bordas no espaço em branco ao redor do conteúdo. Quando houver espaço, deixe uma pequena folga de 2 a 5 unidades da grade. Reduza essa folga se ela incluir conteúdo vizinho. Não corte caracteres, fórmulas, bordas de tabelas ou figuras.
+5. Quando duas questões forem consecutivas, coloque a divisão no espaço em branco entre o último elemento da primeira e o primeiro elemento da seguinte. Não suponha que tudo até o próximo número pertença à questão anterior: verifique o conteúdo.
+6. Se uma questão continuar em outra coluna ou página, crie outra entrada em partes, mantendo o mesmo ID. Nunca faça um único retângulo atravessando colunas e incluindo conteúdo de outras questões.
+7. Inclua textos ou figuras compartilhados como partes adicionais em cada questão que deles depende. Ordene as partes na sequência necessária para ler a questão, com o material de apoio antes do enunciado quando apropriado.
+8. Exclua cabeçalhos, rodapés, números de página, marcas externas e questões vizinhas.
+
+CONFERÊNCIA ANTES DA RESPOSTA
+Verifique cada região sobre a página visual: o número está incluído? O enunciado e todas as alternativas estão completos? Há figuras ou continuação fora do retângulo? Entrou conteúdo de outra questão? As coordenadas são relativas à página inteira? X e Y estão nos campos corretos?
+Confira também se todas as questões presentes no arquivo foram contempladas, sem duplicar uma questão que continua em outra página. Não iguale artificialmente tamanhos de regiões e não copie as coordenadas do exemplo.
+
+SAÍDA
+Retorne somente uma lista JSON válida, sem cercas de Markdown ou explicações, neste formato:
+[
+  {
+    "questao": "1",
+    "partes": [
+      {"pagina": 1, "coordenadas": {"x0": 60, "y0": 120, "x1": 480, "y1": 450}}
+    ]
+  }
+]
+Os números acima são fictícios; substitua pelos limites que observar.
+pagina é a posição da página no arquivo, começando em 1, não o número impresso.
+questao deve ser um ID único, preferindo a numeração original. Se houver números repetidos, use sufixos com letras ASCII, números, hífen ou sublinhado.
+As partes serão recortadas e unidas verticalmente, exatamente na ordem da lista.
+Não acrescente campos nem altere a escala.
+
+Se não tiver acesso visual às páginas ou não conseguir distinguir os limites, informe a limitação em vez de fabricar coordenadas. Essa é a única exceção à saída em JSON.

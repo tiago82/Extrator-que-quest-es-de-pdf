@@ -1,0 +1,10 @@
+Na página anexada, localize a primeira questão e indique um retângulo que inclua seu enunciado, alternativas e figuras.
+
+Use coordenadas relativas à página inteira numa escala de 0 a 1000:
+x0 = esquerda, y0 = topo, x1 = direita, y1 = base.
+A origem é o canto superior esquerdo. Não use pixels nem pontos do PDF.
+
+Responda com uma lista neste formato, substituindo os números pelos limites observados:
+[{"questao":"1","partes":[{"pagina":1,"coordenadas":{"x0":50,"y0":100,"x1":950,"y1":400}}]}]
+
+Se não conseguir ver a página, diga isso. Não invente coordenadas.

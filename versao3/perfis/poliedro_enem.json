@@ -1,0 +1,19 @@
+{
+  "nome": "Poliedro ENEM - Dia 2",
+  "numero_regex": "(?P<numero>\\d{2,3})",
+  "prefixo_numero_regex": "QUEST[ÃA]O",
+  "exigir_negrito": true,
+  "primeira_questao": 91,
+  "ignorar_paginas_iniciais": 1,
+  "colunas": "2",
+  "detectar_pagina_uma_coluna": true,
+  "inicios_colunas": [0.061, 0.5122],
+  "limite_superior": 0.065,
+  "limite_inferior": 0.97,
+  "margem_pontos": 3,
+  "recuo_inicio_pontos": 3,
+  "tolerancia_alinhamento": 8,
+  "titulo_regex": "^(?:(?:CIÊNCIASDANATUREZA|MATEMÁTICA)E(?:SUAS)?TECNOLOGIAS|QUESTÕESDE\\d+A\\d+)$",
+  "parada_regex": "^RASCUNHO$",
+  "quantidade_esperada": 90
+}

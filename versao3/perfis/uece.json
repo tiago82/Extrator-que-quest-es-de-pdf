@@ -1,0 +1,8 @@
+{
+  "nome": "UECE",
+  "numero_regex": "(?P<numero>\\d{2,3})\\.",
+  "exigir_negrito": true,
+  "primeira_questao": 1,
+  "colunas": "auto",
+  "quantidade_esperada": 40
+}
