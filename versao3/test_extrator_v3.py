@@ -6,7 +6,7 @@ from extrator_v3 import detect
 from perfis_v3 import load_profile
 
 
-def make_pdf(path, text=True, regular=False, single_digits=False, prefixed=False, wide_page=False):
+def make_pdf(path, text=True, regular=False, single_digits=False, prefixed=False, wide_page=False, custom_stream=None):
     stream = b''
     if text:
         stream = b'\n'.join([
@@ -28,6 +28,8 @@ def make_pdf(path, text=True, regular=False, single_digits=False, prefixed=False
             b'36 707 m 560 707 l S',
             b'BT /F1 12 Tf 400 650 Td (CONTEUDO DIREITA) Tj ET',
             b'BT /F1 12 Tf 36 400 Td (02. NEXT) Tj ET'])
+    if custom_stream is not None:
+        stream = custom_stream
     font = b'Helvetica' if regular else b'Helvetica-Bold'
     objects = [b'<< /Type /Catalog /Pages 2 0 R >>',
                b'<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
@@ -47,6 +49,55 @@ def make_pdf(path, text=True, regular=False, single_digits=False, prefixed=False
 
 
 class DetectionTests(unittest.TestCase):
+    def test_repeated_numbers_receive_suffixes_and_keep_diagnostics(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent) as tmp:
+            pdf = Path(tmp) / 'teste.pdf'
+            make_pdf(pdf, custom_stream=b'\n'.join([
+                b'BT /F1 12 Tf 36 700 Td (01. FIRST) Tj ET',
+                b'BT /F1 12 Tf 36 600 Td (02. SECOND) Tj ET',
+                b'BT /F1 12 Tf 36 500 Td (01. REPEATED) Tj ET',
+                b'BT /F1 12 Tf 36 400 Td (02. REPEATED) Tj ET']))
+            with self.assertRaisesRegex(ValueError, 'duplicado'):
+                detect(pdf, profile={'colunas': '1', 'numerar_repetidas': 'nao_tratar'})
+            diagnostic = {}
+            questions, _ = detect(pdf, profile={'colunas': '1', 'numerar_repetidas': True}, diagnostics=diagnostic)
+            self.assertEqual([q['questao'] for q in questions], ['01.1', '02.1', '01.2', '02.2'])
+            self.assertEqual([r['questao'] for r in diagnostic['paginas'][0]['regioes']],
+                             ['01.1', '02.1', '01.2', '02.2'])
+            from recorte import extract
+            output = extract(pdf, questions, dpi=72, unidade='pontos', output_base=Path(tmp)/'out')
+            self.assertTrue((output/'questao_01.2.png').is_file())
+            for mode in ('auto', 'tratar'):
+                actual, warnings = detect(pdf, profile={'colunas': '1', 'numerar_repetidas': mode})
+                self.assertEqual(actual, questions)
+                self.assertTrue(any('Reinício de numeração tratado' in warning for warning in warnings))
+
+    def test_repetition_modes_and_legacy_profiles(self):
+        self.assertEqual(load_profile({'numerar_repetidas': True})['numerar_repetidas'], 'tratar')
+        self.assertEqual(load_profile({'numerar_repetidas': False})['numerar_repetidas'], 'nao_tratar')
+        with self.assertRaises(ValueError):
+            load_profile({'numerar_repetidas': 'invalid'})
+        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent) as tmp:
+            pdf = Path(tmp) / 'teste.pdf'
+            make_pdf(pdf)
+            for mode in ('auto', 'tratar', 'nao_tratar'):
+                questions, _ = detect(pdf, profile={'numerar_repetidas': mode})
+                self.assertEqual([q['questao'] for q in questions], ['01', '02', '03', '04'])
+
+    def test_support_text_continues_into_next_column(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent) as tmp:
+            pdf = Path(tmp) / 'teste.pdf'
+            make_pdf(pdf, custom_stream=b'\n'.join([
+                b'BT /F1 12 Tf 36 700 Td (01. FIRST) Tj ET',
+                b'BT /F1 12 Tf 36 550 Td (TEXT) Tj ET',
+                b'BT /F1 12 Tf 36 500 Td (SUPPORT START) Tj ET',
+                b'BT /F1 12 Tf 320 750 Td (SUPPORT CONTINUED) Tj ET',
+                b'BT /F1 12 Tf 320 600 Td (02. SECOND) Tj ET']))
+            questions, _ = detect(pdf, profile={'titulo_regex': '^TEXT$', 'colunas': '2',
+                'inicios_colunas': [36/595, 320/595]})
+            self.assertEqual(len(questions[1]['partes']), 3)
+            self.assertGreater(questions[1]['partes'][1]['coordenadas']['x0'], 300)
+
     def test_wide_question_page_overrides_two_columns(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent) as tmp:
             pdf = Path(tmp) / 'teste.pdf'

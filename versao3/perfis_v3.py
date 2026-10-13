@@ -9,6 +9,7 @@ DEFAULT_PROFILE = {
     'nome': 'UECE',
     'numero_regex': r'(?P<numero>\d{2,3})\.',
     'prefixo_numero_regex': None,
+    'numerar_repetidas': 'auto',
     'exigir_negrito': True,
     'primeira_questao': 1,
     'ignorar_paginas_iniciais': 0,
@@ -43,16 +44,21 @@ def validate_profile(values):
             raise ValueError(f'Perfil: {key} inválido: {error}') from error
         if key == 'numero_regex' and 'numero' not in pattern.groupindex:
             raise ValueError('numero_regex precisa do grupo nomeado (?P<numero>...).')
-    prefix = result['prefixo_numero_regex']
-    if prefix is not None:
-        if not isinstance(prefix, str) or not prefix:
-            raise ValueError('prefixo_numero_regex deve ser null ou texto não vazio.')
-        try:
-            re.compile(prefix)
-        except re.error as error:
-            raise ValueError(f'prefixo_numero_regex inválido: {error}') from error
+    for key in ('prefixo_numero_regex',):
+        pattern = result[key]
+        if pattern is not None:
+            if not isinstance(pattern, str) or not pattern:
+                raise ValueError(f'{key} deve ser null ou texto não vazio.')
+            try:
+                re.compile(pattern)
+            except re.error as error:
+                raise ValueError(f'{key} inválido: {error}') from error
     if type(result['exigir_negrito']) is not bool:
         raise ValueError('exigir_negrito deve ser true ou false.')
+    if type(result['numerar_repetidas']) is bool:
+        result['numerar_repetidas'] = 'tratar' if result['numerar_repetidas'] else 'nao_tratar'
+    if result['numerar_repetidas'] not in ('auto', 'tratar', 'nao_tratar'):
+        raise ValueError('numerar_repetidas deve ser "auto", "tratar" ou "nao_tratar".')
     if type(result['detectar_pagina_uma_coluna']) is not bool:
         raise ValueError('detectar_pagina_uma_coluna deve ser true ou false.')
     for key, minimum in [('primeira_questao', 1), ('ignorar_paginas_iniciais', 0), ('quantidade_esperada', 1)]:

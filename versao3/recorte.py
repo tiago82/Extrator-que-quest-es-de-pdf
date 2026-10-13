@@ -30,8 +30,8 @@ def load_regions(path, doc, unidade='grade1000', dpi_referencia=72):
         ident = question.get('questao')
         if type(ident) is int:
             ident = str(ident)
-        if not isinstance(ident, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}', ident):
-            raise ValueError('questao deve ser um número ou ID com letras ASCII, números, hífen ou sublinhado.')
+        if not isinstance(ident, str) or not re.fullmatch(r'(?:[A-Za-z0-9_-]{1,80}|\d{1,3}\.\d{1,3})', ident):
+            raise ValueError('questao deve ser um número, número com sufixo (78.1) ou ID com letras ASCII, números, hífen ou sublinhado.')
         if ident.lower() in ids:
             raise ValueError(f'Questão duplicada: {ident}')
         ids.add(ident.lower())

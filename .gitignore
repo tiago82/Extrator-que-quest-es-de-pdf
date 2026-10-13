@@ -5,3 +5,4 @@ tmp/
 historico/
 versao3/entradas/*
 versao3/saidas/*
+/output/pdf

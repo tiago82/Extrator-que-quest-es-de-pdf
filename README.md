@@ -25,6 +25,8 @@ python gerador_perfis.py
 
 Carregue um perfil ou clique em **Novo perfil**, escolha um PDF e ajuste os campos. Os modelos de numeração preenchem as expressões automaticamente. **Testar perfil** recalcula a detecção em todas as páginas; selecione uma página para conferir as camadas e clique nas marcações para consultar os motivos. Para preencher limites ou alinhamentos visualmente, escolha o ajuste e clique na página; teste novamente para atualizar os cortes.
 
+O campo **Reinício de numeração** oferece **Automático** (padrão, acrescenta `.1`, `.2` etc. quando detecta números repetidos), **Tratar** (permite reinícios com esses sufixos) e **Não tratar** (interrompe ao encontrar número duplicado). Números que aparecem uma única vez mantêm o identificador original. Perfis anteriores com `numerar_repetidas` igual a `true` ou `false` continuam aceitos.
+
 **Salvar perfil** grava em `versao3/perfis/` e pede confirmação antes de substituir um perfil existente. **Baixar JSON** exporta uma cópia. **Gerar imagens das questões** processa com os valores atuais, salva em `versao3/saidas/` e oferece um link para a revisão completa. As saídas anteriores são preservadas.
 
 Mantenha o terminal aberto durante o uso e pressione Ctrl+C para encerrar. O servidor atende somente no computador local. Para mudar a porta: `python gerador_perfis.py --porta 8766`. PDFs enviados pelo seletor ficam numa pasta temporária durante a sessão; perfis e resultados salvos permanecem. Arquivos grandes podem ser abertos pelo caminho completo. O editor mantém as limitações da V3: exige texto extraível e não inclui OCR nem edição individual dos recortes.

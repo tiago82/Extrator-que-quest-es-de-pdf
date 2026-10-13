@@ -104,6 +104,8 @@ def detect(pdf, columns=None, profile=None, diagnostics=None):
     warnings = []
     active = None
     support = []
+    pending = False
+    previous_number = None
     with pdfplumber.open(pdf) as doc:
         if not any(page.chars for page in doc.pages):
             raise ValueError('Não há texto com posições. PDF escaneado exige OCR, não incluído na V3.')
@@ -195,7 +197,6 @@ def detect(pdf, columns=None, profile=None, diagnostics=None):
                     'y_divisao': y, 'bbox': [item['x0'],item['top'],item['x1'],item['bottom']]}
                     for y,kind,item in markers if kind != 'question')
                 position = top
-                pending = False
                 origin = 'continuação'
 
                 def add_region(y0, y1):
@@ -217,11 +218,16 @@ def detect(pdf, columns=None, profile=None, diagnostics=None):
                     add_region(position, y)
                     if kind == 'question':
                         number = item['numero']
-                        if questions and number != int(questions[-1]['questao']) + 1:
-                            warnings.append(f'Numeração inesperada: {number:02d} na página {index + 1}. Confira a revisão.')
+                        repeated = any(q['questao'] == f'{number:02d}' for q in questions)
+                        if previous_number is not None and number != previous_number + 1:
+                            if repeated and profile['numerar_repetidas'] != 'nao_tratar':
+                                warnings.append(f'Reinício de numeração tratado: {number:02d} na página {index + 1}; números repetidos recebem sufixos .1, .2 etc.')
+                            else:
+                                warnings.append(f'Numeração inesperada: {number:02d} na página {index + 1}. Confira a revisão.')
+                        previous_number = number
                         ident = f'{number:02d}'
-                        if any(q['questao'] == ident for q in questions):
-                            raise ValueError(f'Número duplicado {ident}; esta versão não trata reinício de numeração automaticamente.')
+                        if profile['numerar_repetidas'] == 'nao_tratar' and repeated:
+                            raise ValueError(f'Número duplicado {ident}. O tratamento de reinício está desativado; selecione Tratar ou Automático no perfil.')
                         active = {'questao': ident, 'partes': list(support)}
                         for pd in page_diagnostics:
                             for region in pd['regioes']:
@@ -236,13 +242,31 @@ def detect(pdf, columns=None, profile=None, diagnostics=None):
                         active = None
                         support.clear()
                         pending = True
-                        position = item['bottom'] + 3
+                        position = item['bottom'] + .2
                     else:
                         active = None
                         pending = False
                         support.clear()
                         position = item['bottom'] + 3
                 add_region(position, bottom)
+        if profile['numerar_repetidas'] != 'nao_tratar':
+            totals = {}
+            occurrences = {}
+            for question in questions:
+                ident = question['questao']
+                totals[ident] = totals.get(ident, 0) + 1
+            for question in questions:
+                ident = question['questao']
+                if totals[ident] > 1:
+                    occurrences[ident] = occurrences.get(ident, 0) + 1
+                    question['questao'] = f'{ident}.{occurrences[ident]}'
+            # As regiões estão na mesma ordem dos fragmentos das questões.
+            # Identifique pelo par página/caixa para preservar a revisão dos reinícios.
+            labels = {(part['pagina'], tuple(part['coordenadas'].values())): question['questao']
+                      for question in questions for part in question['partes']}
+            for pd in page_diagnostics:
+                for region in pd['regioes']:
+                    region['questao'] = labels.get((pd['pagina'], tuple(region['bbox'])), region['questao'])
         if not questions or any(not q['partes'] for q in questions):
             raise ValueError('Detecção incompleta: há questões sem conteúdo.')
         if profile['quantidade_esperada'] is not None and len(questions) != profile['quantidade_esperada']:

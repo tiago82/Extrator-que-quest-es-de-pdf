@@ -1,0 +1,23 @@
+{
+  "nome": "UECE 2023.1 - 1a fase - todas as linguas",
+  "numero_regex": "(?P<numero>\\d{2})\\.",
+  "prefixo_numero_regex": null,
+  "numerar_repetidas": true,
+  "exigir_negrito": false,
+  "primeira_questao": 1,
+  "ignorar_paginas_iniciais": 2,
+  "colunas": "2",
+  "detectar_pagina_uma_coluna": false,
+  "inicios_colunas": [
+    0.060471678081171834,
+    0.5236847321829481
+  ],
+  "limite_superior": null,
+  "limite_inferior": null,
+  "margem_pontos": 3,
+  "recuo_inicio_pontos": 1,
+  "tolerancia_alinhamento": 8,
+  "titulo_regex": "^(?:L[ÍI]NGUA(?:PORTUGUESA|ESPANHOLA|FRANCESA|INGLESA)|MATEM[ÁA]TICA|HIST[ÓO]RIA|GEOGRAFIA|F[ÍI]SICA|QU[ÍI]MICA|BIOLOGIA|EDUCA[ÇC][ÃA]OF[ÍI]SICA|FILOSOFIA|SOCIOLOGIA|TEXTO[12])$",
+  "parada_regex": "^(?:RASCUNHO|L[ÍI]NGUAESTRANGEIRA)$",
+  "quantidade_esperada": 101
+}
